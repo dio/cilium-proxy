@@ -23,13 +23,13 @@ public:
   bool setOption(Network::Socket& socket, envoy::config::core::v3::SocketOption::SocketState state) const override {
     // Only set the option once per socket
     if (state != envoy::config::core::v3::SocketOption::STATE_PREBIND) {
-      ENVOY_LOG(trace, "Skipping setting socket ({}) option SO_MARK, state != STATE_PREBIND", socket.ioHandle().fd());
+      ENVOY_LOG(trace, "Skipping setting socket ({}) option SO_MARK, state != STATE_PREBIND", socket.ioHandle().fdDoNotUse());
       return true;
     }
     uint32_t cluster_id = (identity_ >> 16) & 0xFF;
     uint32_t identity_id = (identity_ & 0xFFFF) << 16;
     uint32_t mark = ((ingress_) ? 0xA00 : 0xB00) | cluster_id | identity_id;
-    int rc = setsockopt(socket.ioHandle().fd(), SOL_SOCKET, SO_MARK, &mark, sizeof(mark));
+    int rc = setsockopt(socket.ioHandle().fdDoNotUse(), SOL_SOCKET, SO_MARK, &mark, sizeof(mark));
     if (rc < 0) {
       if (errno == EPERM) {
 	// Do not assert out in this case so that we can run tests without CAP_NET_ADMIN.
@@ -48,7 +48,7 @@ public:
     }
 
     ENVOY_LOG(trace, "Set socket ({}) option SO_MARK to {:x} (magic mark: {:x}, id: {}, cluster: {}), src: {}",
-	      socket.ioHandle().fd(), mark, mark & 0xff00, mark >> 16, mark & 0xff, src_address_ ? src_address_->asString() : "");
+	      socket.ioHandle().fdDoNotUse(), mark, mark & 0xff00, mark >> 16, mark & 0xff, src_address_ ? src_address_->asString() : "");
     return true;
   }
 
@@ -116,6 +116,6 @@ const Cilium::SocketOption* GetSocketOption(const Network::Socket::OptionsShared
   }
   return nullptr;
 }
- 
+
 } // namespace Cilium
 } // namespace Envoy

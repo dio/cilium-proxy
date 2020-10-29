@@ -129,7 +129,7 @@ PolicyHostMap::PolicyHostMap(ThreadLocal::SlotAllocator& tls)
     : tls_(tls.allocateSlot()), validation_visitor_(ProtobufMessage::getNullValidationVisitor()) {
   instance_id_++;
   name_ = "cilium.hostmap." + fmt::format("{}", instance_id_) + ".";
-  ENVOY_LOG(debug, "PolicyHostMap({}) created.", name_);  
+  ENVOY_LOG(debug, "PolicyHostMap({}) created.", name_);
 
   auto empty_map = std::make_shared<ThreadLocalHostMapInitializer>();
   tls_->set([empty_map](Event::Dispatcher&) -> ThreadLocal::ThreadLocalObjectSharedPtr {
@@ -139,20 +139,20 @@ PolicyHostMap::PolicyHostMap(ThreadLocal::SlotAllocator& tls)
 
 // This is used in production
 PolicyHostMap::PolicyHostMap(const LocalInfo::LocalInfo& local_info, Upstream::ClusterManager& cm,
-			     Event::Dispatcher& dispatcher, Runtime::RandomGenerator& random,
+			     Event::Dispatcher& dispatcher, Random::RandomGenerator& random,
 			     Stats::Scope &scope, ThreadLocal::SlotAllocator& tls)
   : PolicyHostMap(tls) {
   scope_ = scope.createScope(name_);
   subscription_ = subscribe("type.googleapis.com/cilium.NetworkPolicyHosts", local_info, cm, dispatcher, random, *scope_, *this);
 }
 
-void PolicyHostMap::onConfigUpdate(const Protobuf::RepeatedPtrField<ProtobufWkt::Any>& resources, const std::string& version_info) {
+void PolicyHostMap::onConfigUpdate(const std::vector<Config::DecodedResourceRef>& resources,, const std::string& version_info) {
   ENVOY_LOG(debug, "PolicyHostMap::onConfigUpdate({}), {} resources, version: {}", name_, resources.size(), version_info);
 
   auto newmap = std::make_shared<ThreadLocalHostMapInitializer>();
 
   for (const auto& resource: resources) {
-    auto config = MessageUtil::anyConvert<cilium::NetworkPolicyHosts>(resource);
+    const auto& config = dynamic_cast<const cilium::NetworkPolicyHosts>(resource);
     ENVOY_LOG(trace, "Received NetworkPolicyHosts for policy {} in onConfigUpdate() version {}", config.policy(), version_info);
 
     MessageUtil::validate(config, validation_visitor_);

@@ -37,7 +37,7 @@ private:
 std::unique_ptr<GrpcSubscriptionImpl>
 subscribe(const std::string& type_url, const LocalInfo::LocalInfo& local_info,
 	  Upstream::ClusterManager& cm, Event::Dispatcher& dispatcher,
-	  Runtime::RandomGenerator& random, Stats::Scope &scope, Envoy::Config::SubscriptionCallbacks& callbacks);
+	  Random::RandomGenerator& random, Stats::Scope &scope, Envoy::Config::SubscriptionCallbacks& callbacks);
 
 } // namespace Cilium
 } // namespace Envoy

@@ -161,31 +161,29 @@ void AccessLog::Entry::InitFromRequest(
 
   // request headers
   headers.iterate(
-      [](const Http::HeaderEntry& header, void *entry__) -> Http::HeaderMap::Iterate {
+      [&http_entry](const Http::HeaderEntry& header) -> Http::HeaderMap::Iterate {
         const absl::string_view key = header.key().getStringView();
         const absl::string_view value = header.value().getStringView();
-        auto entry = static_cast<::cilium::HttpLogEntry *>(entry__);
 
         if (key == pathSV) {
-          entry->set_path(value.data(), value.size());
+          http_entry->set_path(value.data(), value.size());
         } else if (key == methodSV) {
-          entry->set_method(value.data(), value.size());
+          http_entry->set_method(value.data(), value.size());
         } else if (key == authoritySV) {
-          entry->set_host(value.data(), value.size());
+          http_entry->set_host(value.data(), value.size());
         } else if (key == xForwardedProtoSV) {
           // Envoy sets the ":scheme" header later in the router filter
           // according to the upstream protocol (TLS vs. clear), but we want to
           // get the downstream scheme, which is provided in
           // "x-forwarded-proto".
-          entry->set_scheme(value.data(), value.size());
+          http_entry->set_scheme(value.data(), value.size());
         } else {
-          ::cilium::KeyValue *kv = entry->add_headers();
+          ::cilium::KeyValue *kv = http_entry->add_headers();
           kv->set_key(key.data(), key.size());
           kv->set_value(value.data(), value.size());
         }
         return Http::HeaderMap::Iterate::Continue;
-      },
-      http_entry);
+      });
 }
 
 void AccessLog::Entry::UpdateFromResponse(

@@ -26,3 +26,6 @@ external
 
 # generated from make targets
 *.ok
+
+# Bazel local configuration files.
+*.bazelrc

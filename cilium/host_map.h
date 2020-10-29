@@ -52,7 +52,7 @@ class PolicyHostMap : public Singleton::Instance,
 public:
   PolicyHostMap(const LocalInfo::LocalInfo& local_info,
 		Upstream::ClusterManager& cm, Event::Dispatcher& dispatcher,
-		Runtime::RandomGenerator& random, Stats::Scope &scope, ThreadLocal::SlotAllocator& tls);
+		Random::RandomGenerator& random, Stats::Scope &scope, ThreadLocal::SlotAllocator& tls);
   PolicyHostMap(ThreadLocal::SlotAllocator& tls);
   ~PolicyHostMap() {
     ENVOY_LOG(debug, "Cilium PolicyHostMap({}): PolicyHostMap is deleted NOW!", name_);
@@ -123,7 +123,7 @@ public:
       }
       return ID::UNKNOWN;
     }
-	  
+
     uint64_t resolve(const Network::Address::Ip* addr) const {
       auto* ipv4 = addr->ipv4();
       if (ipv4) {
@@ -166,8 +166,8 @@ public:
   }
 
   // Config::SubscriptionCallbacks
-  void onConfigUpdate(const Protobuf::RepeatedPtrField<ProtobufWkt::Any>& resources, const std::string& version_info) override;
-  void onConfigUpdate(const Protobuf::RepeatedPtrField<envoy::service::discovery::v3::Resource>& added_resources,
+  void onConfigUpdate(const std::vector<Config::DecodedResourceRef>& resources, const std::string& version_info) override;
+  void onConfigUpdate(const std::vector<Config::DecodedResourceRef>& added_resources,
 		      const Protobuf::RepeatedPtrField<std::string>& removed_resources,
 		      const std::string& system_version_info) override {
     // NOT IMPLEMENTED YET.
@@ -176,9 +176,6 @@ public:
     UNREFERENCED_PARAMETER(system_version_info);
   }
   void onConfigUpdateFailed(Envoy::Config::ConfigUpdateFailureReason, const EnvoyException* e) override;
-  std::string resourceName(const ProtobufWkt::Any& resource) override {
-    return fmt::format("{}", MessageUtil::anyConvert<cilium::NetworkPolicyHosts>(resource).policy());
-  }
 
 private:
   ThreadLocal::SlotPtr tls_;

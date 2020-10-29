@@ -84,13 +84,13 @@ const Protobuf::MethodDescriptor& sotwGrpcMethod(absl::string_view type_url) {
 std::unique_ptr<GrpcSubscriptionImpl>
 subscribe(const std::string& type_url, const LocalInfo::LocalInfo& local_info,
 	  Upstream::ClusterManager& cm, Event::Dispatcher& dispatcher,
-	  Runtime::RandomGenerator& random, Stats::Scope &scope, Envoy::Config::SubscriptionCallbacks& callbacks) {
+	  Random::RandomGenerator& random, Stats::Scope &scope, Envoy::Config::SubscriptionCallbacks& callbacks) {
   // Hard-coded Cilium gRPC cluster
   // Note: No rate-limit settings are used, consider if needed.
   envoy::config::core::v3::ApiConfigSource api_config_source{};
   api_config_source.set_set_node_on_first_message_only(true);
   api_config_source.set_api_type(envoy::config::core::v3::ApiConfigSource::GRPC);
-  api_config_source.add_grpc_services()->mutable_envoy_grpc()->set_cluster_name("xds-grpc-cilium"); 
+  api_config_source.add_grpc_services()->mutable_envoy_grpc()->set_cluster_name("xds-grpc-cilium");
 
   Config::Utility::checkApiConfigSourceSubscriptionBackingCluster(cm.clusters(), api_config_source);
 

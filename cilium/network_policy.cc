@@ -161,7 +161,7 @@ protected:
 	  }
 	}
 	kv->set_key(header_data.name_.get());
-	kv->set_value(header_data.value_);  
+	kv->set_value(header_data.value_);
       }
       return accepted;
     }
@@ -192,7 +192,7 @@ protected:
       }
       return true;
     }
-    
+
     std::string name_;
   private:
     std::vector<Envoy::Matchers::MetadataMatcher> metadata_matchers_;
@@ -421,7 +421,7 @@ protected:
     std::vector<PortNetworkPolicyRuleConstSharedPtr> rules_; // Allowed if empty.
     bool have_header_matches_{false};
   };
-    
+
   class PortNetworkPolicy : public Logger::Loggable<Logger::Id::config> {
   public:
     PortNetworkPolicy(const NetworkPolicyMap& parent, const google::protobuf::RepeatedPtrField<cilium::PortNetworkPolicy>& rules) {
@@ -522,7 +522,7 @@ NetworkPolicyMap::NetworkPolicyMap(Server::Configuration::FactoryContext& contex
     transport_socket_factory_context_(context.getTransportSocketFactoryContext()) {
   instance_id_++;
   name_ = "cilium.policymap." + fmt::format("{}", instance_id_) + ".";
-  ENVOY_LOG(trace, "NetworkPolicyMap({}) created.", name_);  
+  ENVOY_LOG(trace, "NetworkPolicyMap({}) created.", name_);
 
   tls_->set([&](Event::Dispatcher&) -> ThreadLocal::ThreadLocalObjectSharedPtr {
       return std::make_shared<ThreadLocalPolicyMap>();
@@ -571,7 +571,7 @@ void NetworkPolicyMap::resume() {
   }
 }
 
-void NetworkPolicyMap::onConfigUpdate(const Protobuf::RepeatedPtrField<ProtobufWkt::Any>& resources, const std::string& version_info) {
+void NetworkPolicyMap::onConfigUpdate(const std::vector<Config::DecodedResourceRef>& resources, const std::string& version_info) {
   ENVOY_LOG(debug, "NetworkPolicyMap::onConfigUpdate({}), {} resources, version: {}", name_, resources.size(), version_info);
 
   std::unordered_set<std::string> keeps;
@@ -580,7 +580,7 @@ void NetworkPolicyMap::onConfigUpdate(const Protobuf::RepeatedPtrField<ProtobufW
   // Collect a shared vector of policies to be added
   auto to_be_added = std::make_shared<std::vector<std::shared_ptr<PolicyInstanceImpl>>>();
   for (const auto& resource: resources) {
-    auto config = MessageUtil::anyConvert<cilium::NetworkPolicy>(resource);
+    const auto& config = dynamic_cast<const cilium::NetworkPolicy>(resource);
     ENVOY_LOG(debug, "Received Network Policy for endpoint {} in onConfigUpdate() version {}", config.name(), version_info);
     keeps.insert(config.name());
     ct_maps_to_keep.insert(config.conntrack_map_name());
